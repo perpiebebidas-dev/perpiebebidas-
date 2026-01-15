@@ -2168,13 +2168,27 @@ if(btnPagarMPElement) {
                   }
                   else if (item.isCombo && Array.isArray(item.contenido)) {
                       for (const comp of item.contenido) {
-                          const prodId = comp.id;
-                          const qty = comp.cantidad * item.cant;
-                          const { data: prod, error: prodErr } = await sbClient.from('productos').select('stock').eq('id', prodId).single();
-                          if (prodErr) throw new Error(prodErr.message);
-                          const nuevoStock = Math.max(0, prod.stock - qty);
-                          const { error: updErr } = await sbClient.from('productos').update({ stock: nuevoStock }).eq('id', prodId);
-                          if (updErr) throw new Error(updErr.message);
+                          const itemId = comp.id;
+                          const qty = (comp.cantidad || 0) * item.cant;
+
+                          // CORRECCIÓN: Verificar si es Insumo o Producto para descontar de la tabla correcta
+                          if (comp.type === 'insumo') {
+                              // Es un Insumo -> Tabla 'gastos', columna 'stockActual'
+                              const { data: insumo, error: insErr } = await sbClient.from('gastos').select('stockActual').eq('id', itemId).single();
+                              if (insErr) throw new Error(`Error buscando insumo ID ${itemId}: ${insErr.message}`);
+                              
+                              const nuevoStock = Math.max(0, (insumo.stockActual || 0) - qty);
+                              const { error: updErr } = await sbClient.from('gastos').update({ stockActual: nuevoStock }).eq('id', itemId);
+                              if (updErr) throw new Error(`Error actualizando insumo ID ${itemId}: ${updErr.message}`);
+                          } else {
+                              // Es un Producto -> Tabla 'productos', columna 'stock'
+                              const { data: prod, error: prodErr } = await sbClient.from('productos').select('stock').eq('id', itemId).single();
+                              if (prodErr) throw new Error(`Error buscando producto ID ${itemId}: ${prodErr.message}`);
+                              
+                              const nuevoStock = Math.max(0, (prod.stock || 0) - qty);
+                              const { error: updErr } = await sbClient.from('productos').update({ stock: nuevoStock }).eq('id', itemId);
+                              if (updErr) throw new Error(`Error actualizando producto ID ${itemId}: ${updErr.message}`);
+                          }
                       }
                   }
               }
