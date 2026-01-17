@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1, maximum-scale=1, user-scalable=no" />
-<title>Panel Unificado - PER & PIE Bebidas</title>
+<title>PER & PIE Bebidas</title>
 
 <!-- Librería para Iconos -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -92,12 +92,20 @@
       cursor: help;
   }
 
+  /* Animación para el spinner */
+  @keyframes spin { 
+      0% { transform: rotate(0deg); } 
+      100% { transform: rotate(360deg); } 
+  }
+
   #statusLight {
-      width:12px;
-      height:12px;
-      border-radius:50%;
-      background:red;
-      box-shadow:0 0 6px red;
+      width: 14px; /* Un poco más grande para que se vea bien el anillo */
+      height: 14px;
+      border-radius: 50%;
+      background: red;
+      box-shadow: 0 0 6px red;
+      transition: all 0.3s ease;
+      box-sizing: border-box; /* Necesario para que el borde no deforme el círculo */
   }
 
   /* --- MAIN AREA (CONTENIDO CENTRAL) --- */
@@ -576,13 +584,18 @@
 
 </head>
 <body>
-  
-  <header class="top-header">
-      <h2 class="brand-title">PER & PIE Bebidas</h2>
-      <div class="status-container">
-          <div id="birthdayLight" title="¡Hay un cumpleaños mañana!"></div>
-          <div id="statusLight" title="Estado de conexión Supabase"></div>
+  <header class="top-header" style="flex-direction: column; height: auto; padding: 12px 0; position: relative; min-height: 80px;">
+    <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+      <h2 class="brand-title" style="margin: 0; line-height: 1.2;">PER & PIE Bebidas</h2>
+      <div style="margin-top: 4px; display: flex; align-items: center; gap: 6px; color: #6b7280; font-size: 0.85rem; font-family: 'Inter', sans-serif; font-weight: 500;">
+        <i class="fas fa-map-marker-alt" style="color: #ef4444; font-size: 0.8rem;"></i>
+        <span>E. Zeballos 4327 P.A., Santa Fe, Capital</span>
       </div>
+    </div>
+    <div class="status-container" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%);">
+        <div id="birthdayLight" title="¡Hay un cumpleaños mañana!"></div>
+        <div id="statusLight" title="Estado de conexión Supabase"></div>
+    </div>
   </header>
 
   <div class="main">
@@ -593,9 +606,7 @@
       <div id="birthday-notifications-container" class="birthday-notifications">
           <!-- Las tarjetas de cumpleaños se cargarán aquí -->
       </div>
-
-      <div class="inicio-container">
-          <p class="inicio-welcome-text">"¡Hola! PER & PIE Bebidas te abre las puertas de un mundo de sabores y posibilidades. ¡Esperamos que encuentres lo que estás buscando!"</p>
+      <div class="inicio-container" style="padding-top: 60px;"> <p class="inicio-welcome-text">"¡Hola! PER & PIE Bebidas te abre las puertas de un mundo de sabores y posibilidades. ¡Esperamos que encuentres lo que estás buscando!"</p>
           
           <img 
             id="logo-inicio-img"
@@ -747,19 +758,22 @@
                     <div class="summary-row"><span class="summary-label">Descuento:</span><span id="venta-monto-descuento" class="summary-value discount">$0.00</span></div>
                     <div class="summary-row summary-total"><span class="summary-label">TOTAL:</span><span id="venta-total" class="summary-value">$0.00</span></div>
                 </div>
-
-                <div style="display:grid; grid-template-columns: 1fr; gap: 10px; margin-top: 20px;">
-                  
-    
-                  <button id="btn-enviar-pedido-wa" class="btn-modern" style="background-color: var(--whatsapp-green); color: white;">
-                      <i class="fas fa-list-alt" style="margin-right: 8px;"></i>Ver Resumen
+                <div style="display: flex; gap: 10px; margin-top: 24px;">
+                  <button id="btn-confirmar-directo" class="btn-modern" style="background-color: var(--whatsapp-green); color: white; flex-grow: 1; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                      <i class="fab fa-whatsapp" style="font-size: 1.3rem;"></i>
+                      <span style="font-size: 1.1rem;">Confirmar</span>
                   </button>
 
-                  <p style="font-size:0.85rem;color:#4b5563;margin-top:5px; text-align:center;">
-                      ¿Quieres gestionar un pedido? Explora alternativas de pago, ¡contáctanos!
+                  <button id="btn-compartir-directo" class="btn-modern" style="background-color: #3b82f6; color: white; width: 60px; display: flex; align-items: center; justify-content: center;" title="Compartir Pedido">
+                      <i class="fas fa-share-alt" style="font-size: 1.2rem;"></i>
+                  </button>
+                </div>
+
+                <div style="margin-top: 15px;">
+                   <p style="font-size:0.85rem;color:#4b5563;margin-bottom:10px; text-align:center;">
+                      "¿Quieres gestionar un pedido?🔥¡Hacelo fácil y rápido! 😄"
                   </p>
-                  
-                  <button id="btn-limpiar-venta-completa" class="btn-modern btn-gray" style="margin-top: 10px;">Limpiar Carrito</button>
+                  <button id="btn-limpiar-venta-completa" class="btn-modern btn-gray">Limpiar Carrito</button>
                 </div>
 
             </form>
@@ -847,9 +861,30 @@
 <script>
 const statusLight = document.getElementById('statusLight');
 function logMini(msg){ console.log(`[LOG] ${msg}`); }
+
 function setStatus(color, text){
-  statusLight.style.background = color;
-  statusLight.style.boxShadow = `0 0 6px ${color}`;
+  // 1. Limpiamos estilos previos (animación y bordes)
+  statusLight.style.animation = 'none';
+  statusLight.style.border = 'none';
+
+  if (color === 'yellow') {
+      // --- MODO CARGANDO (Spinner) ---
+      statusLight.style.background = 'transparent'; // Fondo transparente
+      statusLight.style.boxShadow = 'none';
+      
+      // Creamos el anillo giratorio
+      statusLight.style.border = '2px solid rgba(250, 204, 21, 0.3)'; // Amarillo clarito
+      statusLight.style.borderTop = '2px solid #eab308'; // Amarillo fuerte
+      statusLight.style.animation = 'spin 1s linear infinite'; // ¡A girar!
+      
+      statusLight.title = "Conectando...";
+  } else {
+      // --- MODO FIJO (Verde o Rojo) ---
+      statusLight.style.background = color;
+      statusLight.style.boxShadow = `0 0 6px ${color}`;
+      statusLight.title = text;
+  }
+  
   logMini(`Estado: ${text} (${color})`);
 }
 
@@ -2040,67 +2075,24 @@ if(btnPagarMPElement) {
     btnPagarMPElement.parentNode.replaceChild(newBtn, btnPagarMPElement);
     newBtn.addEventListener('click', handlePagarQR);
 }
-
-// --- FIN NUEVA LÓGICA DE PAGO QR ---
-  const btnPagarMP = document.getElementById('btn-pagar-mp');
-  const btnEnviarWA = document.getElementById('btn-enviar-pedido-wa');
-  
-  // --- INICIO BLOQUE CORREGIDO ---
-  btnEnviarWA.addEventListener('click', () => {
-      // 1. GENERAMOS EL ID ÚNICO AL INICIO
-      const uniqueIdForThisSale = generateUniqueId();
-
-      const clienteVal = document.getElementById('venta-cliente').value.trim();
-      if (!clienteVal) {
-          alert('⚠️ El campo "Nombre y Apellido / Domicilio" es obligatorio.');
-          document.getElementById('venta-cliente').focus();
-          return;
-      }
-      if(carrito.length===0) {
-          alert('El carrito está vacío.');
-          return;
-      }
-      
+  // --- NUEVA LÓGICA: CONFIRMAR DIRECTO Y COMPARTIR ---
+  const btnConfirmarDirecto = document.getElementById('btn-confirmar-directo');
+  const btnCompartirDirecto = document.getElementById('btn-compartir-directo');
+  // Función auxiliar con distinción para Compartir
+  function generarTextoPedido(incluirID = false, idVenta = '', esCompartir = false) {
+      const clienteVal = document.getElementById('venta-cliente').value.trim() || 'Cliente Ocasional';
       const fechaStr = new Date().toLocaleString('es-AR');
       const sub = carrito.reduce((s,it)=>s+it.precio*it.cant,0);
       const baseDescontable = carrito.reduce((acc, it) => { if(it.aceptaDescuento) return acc + (it.precio * it.cant); return acc; }, 0);
       const desc = baseDescontable * (descuentoActual.valor/100);
       const tot = sub - desc;
-      const cliente = document.getElementById('venta-cliente').value.trim() || 'Cliente Ocasional';
-      
-      const formaPagoDisplay = "a coordinar (Via WhatsApp)";
-      
-      let html = '<table><thead><tr><th style="text-align:left;">Producto</th><th>Unidad</th><th>Total</th></tr></thead><tbody>';
-      carrito.forEach(it => {
-          let nombreDisplay = `<span style="font-weight:600;">${it.cant} x ${it.nombre}</span>`;
-          if(it.isCombo && it.contenido && it.contenido.length > 0){
-              nombreDisplay += '<ul style="margin:4px 0 0 0; padding-left:10px; font-size:0.85em; color:#555; list-style-type:none;">';
-              it.contenido.forEach(c => { nombreDisplay += `<li>• ${c.cantidad} x ${c.nombre}</li>`; });
-              nombreDisplay += '</ul>';
-          }
-          html += `<tr>
-              <td style="padding:8px 0;">${nombreDisplay}</td>
-              <td style="vertical-align:top; padding:8px 4px;">$${it.precio.toLocaleString('es-AR')}</td>
-              <td style="vertical-align:top; padding:8px 4px; font-weight:bold;">$${(it.precio * it.cant).toLocaleString('es-AR')}</td>
-          </tr>`;
-      });
-      html += '</tbody></table>';
-      html += '<div class="totales">';
-      html += `<div style="margin-top:10px;">Cliente: <span style="font-weight:600;">${cliente}</span></div>`;
-      html += `<div>Pago: <span style="font-weight:600;">${formaPagoDisplay}</span></div>`;
-      if(descuentoActual.codigo) {
-          html += `<div style="color:#007bff; font-size:0.9rem; margin-bottom:4px;">Código aplicado: ${descuentoActual.codigo} (${descuentoActual.valor}%)</div>`;
-      }
-      html += `<div>Sub: $${sub.toLocaleString('es-AR')}</div>`;
-      html += `<div>Desc: -$${desc.toLocaleString('es-AR')}</div>`;
-      html += `<div style="font-size:1.3rem; color:#059669; margin-top:5px;">Tot: $${tot.toLocaleString('es-AR')}</div>`;
-      html += `<div style="margin-to-p:8px;color:#666">${fechaStr}</div></div>`;
-      
-      document.getElementById('ventaResumenContenido').innerHTML = html;
-      document.getElementById('ventaResumenCard').classList.add('show');
 
-      // 2. AGREGAMOS EL ID AL MENSAJE DE WHATSAPP
-      let msg = `🧾 *Pedido PER&PIE (Para coordinar)*\n🆔 ID Venta: ${uniqueIdForThisSale}\nCliente: ${cliente}\nFecha: ${fechaStr}\n\n`;
+      // CAMBIO DE TÍTULO SEGÚN TIPO
+      let msg = esCompartir ? `🧾 *PER & PIE Bebidas*\n` : `🧾 *Pedido PER & PIE (Para coordinar)*\n`;
+      
+      if(incluirID) msg += `🆔 ID Venta: *${idVenta}*\n*Para retirar el pedido diga su codigo.*\n`;
+      
+      msg += `Cliente: ${clienteVal}\nFecha: ${fechaStr}\n\n`;
       
       carrito.forEach(it => {
           msg += `• ${it.cant} x ${it.nombre} ($${it.precio.toLocaleString('es-AR')} u.)\n`;
@@ -2111,147 +2103,111 @@ if(btnPagarMPElement) {
       if(descuentoActual.codigo) {
           msg += `\nCódigo: ${descuentoActual.codigo} (${descuentoActual.valor}% OFF)`;
       }
-      msg += `\n\n*Total a Pagar: $${tot.toLocaleString('es-AR')}*\nForma de Pago: ${formaPagoDisplay}`;
+      msg += `\n\n*Total a Pagar: $${tot.toLocaleString('es-AR')}*`;
+
+      // SOLO INCLUIR SI NO ES COMPARTIR
+      if(!esCompartir) {
+          msg += `\nForma de Pago: a coordinar (Via WhatsApp)`;
+      }
+
+      return { texto: msg, total: tot, descuentoMonto: desc, subtotal: sub };
+  }
+
+  // EVENTO: BOTÓN COMPARTIR (Sin forma de pago y nuevo título)
+  btnCompartirDirecto.addEventListener('click', () => {
+      if(carrito.length === 0) { alert('El carrito está vacío.'); return; }
       
-      ultimoMensajePedido = msg;
+      // Enviamos 'true' al final para que sea formato compartir
+      const datos = generarTextoPedido(false, '', true); 
       
-      // CONFIGURAMOS EL BOTÓN DE CONFIRMAR DENTRO DEL MODAL
-      document.getElementById('btnVentaWhatsApp').onclick = async () => {
-          const btnConfirmar = document.getElementById('btnVentaWhatsApp');
-          btnConfirmar.disabled = true;
-          btnConfirmar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
-          
-          const nombreClienteTexto = document.getElementById('venta-cliente').value.trim() || 'Cliente Ocasional';
-          
-          // Cálculos financieros
-          const totalGananciaCalculada = carrito.reduce((acc, item) => {
-              return acc + (Number(item.ganancia) || 0) * item.cant;
-          }, 0) - desc;
-          const pagoPorcentaje = Number(globalPagoPorcentaje) || 0;
-          const totalMiPagoCalculado = totalGananciaCalculada * (pagoPorcentaje / 100);
-
-          try {
-              logMini('Intentando guardar venta (Fiado) en Supabase...');
-              const datosTransformados = transformarDatosVenta(carrito, descuentoActual);
-
-              const ventaParaGuardar = {
-                  fecha: new Date().toISOString(),
-                  items: datosTransformados.items, 
-                  descuentoAplicado: datosTransformados.descuento,
-                  clienteId: null, 
-                  cliente: nombreClienteTexto, 
-                  descuentoId: null, 
-                  formaDePago: "Fiado (Via WhatsApp)", 
-                  
-                  // 3. GUARDAMOS EL ID EN LA BASE DE DATOS
-                  venta_id: uniqueIdForThisSale,
-                  
-                  subtotal: sub,
-                  montoDescuento: desc,
-                  total: tot,
-                  ganancia: totalGananciaCalculada,
-                  miPago: totalMiPagoCalculado,
-                  archivada: false,
-                  estado_pago: "Fiado" 
-              };
-
-              // --- DESCUENTO DE STOCK ---
-              for (const item of carrito) {
-                  if (!item.isCombo) {
-                      const prodId = item.id;
-                      const qty = item.cant;
-                      const { data: prod, error: prodErr } = await sbClient.from('productos').select('stock').eq('id', prodId).single();
-                      if (prodErr) throw new Error(prodErr.message);
-                      const nuevoStock = Math.max(0, prod.stock - qty);
-                      const { error: updErr } = await sbClient.from('productos').update({ stock: nuevoStock }).eq('id', prodId);
-                      if (updErr) throw new Error(updErr.message);
-                  }
-                  else if (item.isCombo && Array.isArray(item.contenido)) {
-                      for (const comp of item.contenido) {
-                          const itemId = comp.id;
-                          const qty = (comp.cantidad || 0) * item.cant;
-
-                          // CORRECCIÓN: Verificar si es Insumo o Producto para descontar de la tabla correcta
-                          if (comp.type === 'insumo') {
-                              // Es un Insumo -> Tabla 'gastos', columna 'stockActual'
-                              const { data: insumo, error: insErr } = await sbClient.from('gastos').select('stockActual').eq('id', itemId).single();
-                              if (insErr) throw new Error(`Error buscando insumo ID ${itemId}: ${insErr.message}`);
-                              
-                              const nuevoStock = Math.max(0, (insumo.stockActual || 0) - qty);
-                              const { error: updErr } = await sbClient.from('gastos').update({ stockActual: nuevoStock }).eq('id', itemId);
-                              if (updErr) throw new Error(`Error actualizando insumo ID ${itemId}: ${updErr.message}`);
-                          } else {
-                              // Es un Producto -> Tabla 'productos', columna 'stock'
-                              const { data: prod, error: prodErr } = await sbClient.from('productos').select('stock').eq('id', itemId).single();
-                              if (prodErr) throw new Error(`Error buscando producto ID ${itemId}: ${prodErr.message}`);
-                              
-                              const nuevoStock = Math.max(0, (prod.stock || 0) - qty);
-                              const { error: updErr } = await sbClient.from('productos').update({ stock: nuevoStock }).eq('id', itemId);
-                              if (updErr) throw new Error(`Error actualizando producto ID ${itemId}: ${updErr.message}`);
-                          }
-                      }
-                  }
-              }
-              // --- FIN STOCK ---
-
-              const { error } = await sbClient.from('ventas').insert(ventaParaGuardar);
-
-              if (error) {
-                  throw new Error(error.message);
-              } else {
-                  logMini('✅ Venta (Fiado) guardada exitosamente.');
-                  // Quemar cupón si es de un solo uso
-                  const usageType = (descuentoActual.usageType || '').toLowerCase();
-                  const singleUseValues = ['unico', 'single', 'soltero'];
-                  const isSingleUse = descuentoActual.id && singleUseValues.includes(usageType);
-                  if (isSingleUse) {
-                      try { await sbClient.from('descuentos').delete().eq('id', descuentoActual.id);
-                      } catch (e) {}
-                  } 
-              }
-
-          } catch (err) {
-              logMini(`❌ Error: ${err.message}`);
-              alert('Hubo un error al guardar. Intenta de nuevo.');
-              btnConfirmar.disabled = false;
-              btnConfirmar.innerHTML = '<i class="fab fa-whatsapp"></i> Confirmar por WhatsApp';
-              return;
-          }
-
-          try {
-              // Actualización visual del stock local
-              await updateStockFromSale(carrito);
-              btnConfirmar.innerHTML = '<i class="fas fa-check"></i> Guardado';
-          } catch (err) {}
-
-          // Abrir WhatsApp
-          if (globalAdminWhatsApp) {
-              window.open('https://wa.me/' + globalAdminWhatsApp + '?text='+encodeURIComponent(ultimoMensajePedido), '_blank');
-          } else {
-              window.open('https://wa.me/?text='+encodeURIComponent(ultimoMensajePedido), '_blank');
-          }
-      };
-
-      document.getElementById('btnVentaCompartir').onclick = () => {
-          const msgCompartir = ultimoMensajePedido + "\n\n¡Mirá este pedido que hice en PER & PIE Bebidas!";
-          if (navigator.share) {
-              navigator.share({ title: 'Mi Pedido en PER & PIE', text: msgCompartir });
-          } else {
-              window.open('https://wa.me/?text=' + encodeURIComponent(msgCompartir), '_blank');
-          }
-      };
-
-      document.getElementById('btnVentaCerrar').onclick = () => {
-          document.getElementById('ventaResumenCard').classList.remove('show');
-          const btnConfirmar = document.getElementById('btnVentaWhatsApp');
-          btnConfirmar.disabled = false;
-          btnConfirmar.innerHTML = '<i class="fab fa-whatsapp"></i> Confirmar por WhatsApp';
-          limpiarVentaCompleta(); 
-      };
-      const btnPagoModal = document.getElementById('btnVentaPagar');
-      if (btnPagoModal) btnPagoModal.style.display = 'none';
+      const msgCompartir = datos.texto + "\n\n¡Mirá estos precios en *PER & PIE Bebidas*, se encuentran en Zeballos 4327 P.A. WhatsApp 342 5993971 / 3483 483892! https://perpiebebidas-dev.github.io/perpiebebidas-/";
+      
+      if (navigator.share) {
+          navigator.share({ title: 'Mi Pedido en PER & PIE', text: msgCompartir });
+      } else {
+          window.open('https://wa.me/?text=' + encodeURIComponent(msgCompartir), '_blank');
+      }
   });
-  // --- FIN BLOQUE CORREGIDO ---
+
+  // EVENTO: BOTÓN CONFIRMAR (Guarda en BD y Abre WhatsApp)
+  btnConfirmarDirecto.addEventListener('click', async () => {
+      const clienteVal = document.getElementById('venta-cliente').value.trim();
+      if (!clienteVal) {
+          alert('⚠️ El campo "Nombre y Apellido / Domicilio" es obligatorio.');
+          document.getElementById('venta-cliente').focus();
+          return;
+      }
+      if(carrito.length === 0) { alert('El carrito está vacío.'); return; }
+
+      // UI Loading
+      const iconoOriginal = btnConfirmarDirecto.innerHTML;
+      btnConfirmarDirecto.disabled = true;
+      btnConfirmarDirecto.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+
+      const uniqueIdForThisSale = generateUniqueId();
+      const datosPedido = generarTextoPedido(true, uniqueIdForThisSale);
+      const nombreClienteTexto = clienteVal;
+
+      // Cálculos financieros para DB
+      const totalGananciaCalculada = carrito.reduce((acc, item) => {
+          return acc + (Number(item.ganancia) || 0) * item.cant;
+      }, 0) - datosPedido.descuentoMonto;
+      const pagoPorcentaje = Number(globalPagoPorcentaje) || 0;
+      const totalMiPagoCalculado = totalGananciaCalculada * (pagoPorcentaje / 100);
+
+      try {
+          // Guardar en Supabase
+          const datosTransformados = transformarDatosVenta(carrito, descuentoActual);
+          const ventaParaGuardar = {
+              fecha: new Date().toISOString(),
+              items: datosTransformados.items, 
+              descuentoAplicado: datosTransformados.descuento,
+              cliente: nombreClienteTexto, 
+              formaDePago: "Fiado (Via WhatsApp)", 
+              venta_id: uniqueIdForThisSale,
+              subtotal: datosPedido.subtotal,
+              montoDescuento: datosPedido.descuentoMonto,
+              total: datosPedido.total,
+              ganancia: totalGananciaCalculada,
+              miPago: totalMiPagoCalculado,
+              archivada: false,
+              estado_pago: "Fiado" 
+          };
+
+          // Descuento de Stock
+          await updateStockFromSale(carrito);
+          
+          // Insertar venta
+          const { error } = await sbClient.from('ventas').insert(ventaParaGuardar);
+          if (error) throw new Error(error.message);
+
+          // Quemar cupón si es necesario
+          const usageType = (descuentoActual.usageType || '').toLowerCase();
+          const singleUseValues = ['unico', 'single', 'soltero'];
+          if (descuentoActual.id && singleUseValues.includes(usageType)) {
+              try { await sbClient.from('descuentos').delete().eq('id', descuentoActual.id); } catch (e) {}
+          } 
+
+          // ÉXITO: Abrir WhatsApp
+          let mensajeParaAdmin = datosPedido.texto;
+          if (globalAdminWhatsApp) {
+              window.open('https://wa.me/' + globalAdminWhatsApp + '?text='+encodeURIComponent(mensajeParaAdmin), '_blank');
+          } else {
+              window.open('https://wa.me/?text='+encodeURIComponent(mensajeParaAdmin), '_blank');
+          }
+          
+          // Limpiar
+          limpiarVentaCompleta();
+
+      } catch (err) {
+          console.error(err);
+          alert('Hubo un error al guardar: ' + err.message);
+      } finally {
+          btnConfirmarDirecto.disabled = false;
+          btnConfirmarDirecto.innerHTML = iconoOriginal;
+      }
+  });
+  // --- FIN NUEVA LÓGICA ---
 
   document.getElementById("btn-limpiar-venta-completa").addEventListener("click", () => {
       limpiarVentaCompleta();
