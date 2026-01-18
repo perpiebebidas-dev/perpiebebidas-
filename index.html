@@ -2174,9 +2174,44 @@ if(btnPagarMPElement) {
               estado_pago: "Fiado" 
           };
 
-          // Descuento de Stock
-          await updateStockFromSale(carrito);
-          
+                // --- DESCUENTO DE STOCK (Lógica corregida) ---
+          for (const item of carrito) {
+              if (!item.isCombo) {
+                  const prodId = item.id;
+                  const qty = item.cant;
+                  const { data: prod, error: prodErr } = await sbClient.from('productos').select('stock').eq('id', prodId).single();
+                  if (prodErr) throw new Error(prodErr.message);
+                  const nuevoStock = Math.max(0, prod.stock - qty);
+                  const { error: updErr } = await sbClient.from('productos').update({ stock: nuevoStock }).eq('id', prodId);
+                  if (updErr) throw new Error(updErr.message);
+              }
+              else if (item.isCombo && Array.isArray(item.contenido)) {
+                  for (const comp of item.contenido) {
+                      const itemId = comp.id;
+                      const qty = (comp.cantidad || 0) * item.cant;
+
+                      // Verificar si es Insumo o Producto para descontar de la tabla correcta
+                      if (comp.type === 'insumo') {
+                          // Es un Insumo -> Tabla 'gastos'
+                          const { data: insumo, error: insErr } = await sbClient.from('gastos').select('stockActual').eq('id', itemId).single();
+                          if (insErr) throw new Error(`Error buscando insumo ID ${itemId}: ${insErr.message}`);
+                          
+                          const nuevoStock = Math.max(0, (insumo.stockActual || 0) - qty);
+                          const { error: updErr } = await sbClient.from('gastos').update({ stockActual: nuevoStock }).eq('id', itemId);
+                          if (updErr) throw new Error(`Error actualizando insumo ID ${itemId}: ${updErr.message}`);
+                      } else {
+                          // Es un Producto -> Tabla 'productos'
+                          const { data: prod, error: prodErr } = await sbClient.from('productos').select('stock').eq('id', itemId).single();
+                          if (prodErr) throw new Error(`Error buscando producto ID ${itemId}: ${prodErr.message}`);
+                          
+                          const nuevoStock = Math.max(0, (prod.stock || 0) - qty);
+                          const { error: updErr } = await sbClient.from('productos').update({ stock: nuevoStock }).eq('id', itemId);
+                          if (updErr) throw new Error(`Error actualizando producto ID ${itemId}: ${updErr.message}`);
+                      }
+                  }
+              }
+          }
+
           // Insertar venta
           const { error } = await sbClient.from('ventas').insert(ventaParaGuardar);
           if (error) throw new Error(error.message);
@@ -2248,42 +2283,6 @@ if(btnPagarMPElement) {
     actualizarTotales();
   }
   
-}
-
-async function updateStockFromSale(cart) {
-    if (!cart || cart.length === 0) return;
-
-    for (const item of cart) {
-        if (item.isCombo) {
-            const comboDef = combosMasterCache.find(c => c.id === item.id);
-            if (!comboDef) continue;
-            
-            const comboItems = comboDef.items || comboDef.productos || [];
-            for (const recipeItem of comboItems) {
-                const productName = recipeItem.nombre;
-                const productToUpdate = productosCache.find(p => p.nombre.toLowerCase().trim() === productName.toLowerCase().trim());
-                
-                if (productToUpdate) {
-                    const quantityToDecrement = (recipeItem.cantidad || 0) * item.cant;
-                    await decrementProductStock(productToUpdate.id, quantityToDecrement);
-                }
-            }
-        } else {
-            await decrementProductStock(item.id, item.cant);
-        }
-    }
-}
-
-async function decrementProductStock(productId, quantity) {
-    if (!productId || !quantity || quantity <= 0) return;
-    try {
-        await supabaseClient.rpc('decrement_stock', {
-            p_id: productId,
-            p_qty: quantity
-        });
-    } catch (err) {
-        console.error(err);
-    }
 }
 
 // Función notifyAdminByWhatsApp ELIMINADA del flujo automático.
