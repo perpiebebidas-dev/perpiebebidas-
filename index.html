@@ -1783,7 +1783,6 @@ function initVentas(sbClient) {
       actualizarTotales();
       document.getElementById('venta-cliente').value = ''; 
   }
-
   let validationTimeout;
   async function validarDescuento(codigo) {
     clearTimeout(validationTimeout);
@@ -1827,8 +1826,9 @@ function initVentas(sbClient) {
     }, 400);
   }
 
-  // --- EVENT LISTENERS NUEVOS ---
-  // Detectar cambios en los Radio Buttons
+  // --- EVENT LISTENERS ---
+
+  // 1. Detectar cambios en los Radio Buttons (Tipo de Venta)
   document.querySelectorAll('input[name="tipoVenta"]').forEach(radio => {
       radio.addEventListener('change', () => {
           buscadorInput.value = ''; // Limpiar al cambiar
@@ -1837,30 +1837,27 @@ function initVentas(sbClient) {
       });
   });
 
-  // Detectar escritura en el buscador
+  // 2. Detectar escritura en el buscador y manejo de lista
   buscadorInput.addEventListener('input', () => {
       populateVentaSelector();
   });
-  
-  // Mostrar lista al hacer foco
   buscadorInput.addEventListener('focus', () => {
       populateVentaSelector();
   });
-  
-  // Ocultar lista al hacer click fuera
   document.addEventListener('click', (e) => {
       if (!e.target.closest('.search-container')) {
           resultsListDiv.classList.remove('active');
       }
   });
   
-  // Escuchar inputs de descuento
+  // 3. Escuchar inputs de descuento (RESTAURADO)
   inputCodigo.addEventListener('input', () => {
       validarDescuento(inputCodigo.value.trim());
   });
   inputCodigo.addEventListener('change', () => {
       validarDescuento(inputCodigo.value.trim());
   });
+
 // --- FUNCIONES DE AYUDA (AÑADIR) ---
 
 // Función para generar ID Estilo: 1638 @ ABC
